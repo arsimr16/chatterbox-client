@@ -8,10 +8,13 @@ class App {
     this.server = 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages';
     this.currentRoom;
     this.friends = {};
+    this.autoRefresh;
+    this.autoRefreshInterval = 3000;
   }
 
   init() {
     this.updateRoomList();
+    this.startAutoRefresh();
     $('#main .username').click(this.handleUsernameClick.bind(this)); 
     $('#switch-room').on('click', this.handleSwitchRoom.bind(this));
     $('#send').on('submit', this.handleSubmit.bind(this));
@@ -58,9 +61,9 @@ class App {
     $('#chats').append(message);
   }
 
-  renderRoomMessages(roomname) {
+  renderRoomMessages() {
     var whereParam = {
-      roomname: roomname
+      roomname: this.currentRoom
     };
 
     $.ajax({
@@ -76,6 +79,14 @@ class App {
         $('#main .username').on('click', this.handleUsernameClick); 
       }
     });
+  }
+
+  startAutoRefresh() {
+    this.autoRefresh = setInterval(() => {
+      console.log('last updated: ' + new Date())
+      this.clearMessages();
+      this.renderRoomMessages();
+    }, this.autoRefreshInterval);
   }
 
   renderRoom(roomname) {
@@ -126,15 +137,14 @@ class App {
     event.preventDefault();
     var roomname = $('#new-roomname').val();
     this.renderRoom(roomname);
-    $(`#roomSelect > option[value=${roomname}]`)[0].selected = true;
+    $(`#roomSelect > option[value='${roomname}']`)[0].selected = true;
   }
 
   handleSwitchRoom() {
-    console.log(this);
     var roomname = $('#roomSelect > option:selected').val();
     this.currentRoom = roomname;
     this.clearMessages();
-    this.renderRoomMessages(roomname);
+    this.renderRoomMessages();
   }
 
   handleUsernameClick(event) {
