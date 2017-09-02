@@ -14,8 +14,8 @@ class App {
   init() {
     this.fetch();
     this.startAutoRefresh();
-    // this.updateRooms();
     $('#switch-room').on('click', this.handleSwitchRoom.bind(this));
+    $('#send').on('submit', this.handleSubmit.bind(this));
   }
 
   fetch(param) {
@@ -60,7 +60,6 @@ class App {
     }
   }
   
-
   updateRooms() {
     $('#roomSelect').html('');
     for (var roomname in this.messagesByRoom) {
@@ -78,6 +77,36 @@ class App {
     var lastUpdateTime = this.lastUpdateTimeByRoom(roomname);
     var whereParam = this.getWhereParam(roomname, lastUpdateTime);
     this.fetch(whereParam);
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    var usernameParam = window.location.search;
+    var username = usernameParam.substring(usernameParam.indexOf('=') + 1);
+    var text = $('#message').val();
+    var roomname = this.currentRoom;
+    var message = {
+      username: username,
+      text: text,
+      roomname: roomname
+    };
+    this.send(message);
+  }
+
+  send(message) {
+    $.ajax({ 
+      url: this.server,
+      type: 'POST',
+      contentType: 'appication/json',
+      data: JSON.stringify(message),
+      success: function (data) {
+        console.log('chatterbox: Message sent');
+      },
+      error: function (data) {
+        // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
+        console.error('chatterbox: Failed to send message', data);
+      }
+    });
   }
 
   refresh() {
