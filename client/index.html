@@ -28,8 +28,23 @@
       <h1>chatterbox</h1>
       <select id="roomSelect">
       </select>
-      <input id="switch-room" type="button" value="Switch Room">
+      <input id="switch-room" type="button" value="Switch">
+
+      <div>
+        <form id="send">
+          <textarea id="message" placeholder="New Message"></textarea>
+          <input type="submit" value="Send">
+        </form>
+      </div>
+      
+      <div>
+        <form id="new-room">
+          <input type="text" id="new-roomname" placeholder="New Room">
+          <input type="submit" value="Create">
+        </form>
+      </div>
+      
+      <div id="chats"></div>
     </div>
-    <div id="chats"></div>
   </body>
 </html>
