@@ -16,6 +16,7 @@ class App {
     this.startAutoRefresh();
     $('#switch-room').on('click', this.handleSwitchRoom.bind(this));
     $('#send').on('submit', this.handleSubmit.bind(this));
+    $('#new-room').on('submit', this.handleCreateRoom.bind(this));
   }
 
   fetch(param) {
@@ -63,9 +64,12 @@ class App {
   updateRooms() {
     $('#roomSelect').html('');
     for (var roomname in this.messagesByRoom) {
-      var option = $(`<option value="${_.escape(roomname)}">${_.escape(roomname)}</option>`);
-      $('#roomSelect').append(option);
+      this.renderRoom(roomname);
     }
+    this.selectCurrentRoom();
+  }
+
+  selectCurrentRoom() {
     if (this.currentRoom) {
       $(`#roomSelect > option[value=${JSON.stringify(this.currentRoom)}]`)[0].selected = true;                                                                                               
     }
@@ -118,7 +122,7 @@ class App {
   }
 
   startAutoRefresh() {
-    this.autoRefreshInterval = setInterval(this.refresh.bind(this), 3000);
+    this.autoRefreshInterval = setInterval(this.refresh.bind(this), 5000);
   }
 
   stopAutoRefresh() {
@@ -127,7 +131,9 @@ class App {
  
   lastUpdateTimeByRoom(roomname) {
     if (this.messagesByRoom[roomname]) {
-      return this.messagesByRoom[roomname][0].createdAt;
+      if (this.messagesByRoom[roomname].length > 0) {
+        return this.messagesByRoom[roomname][0].createdAt;
+      }
     }
   }
   
@@ -174,216 +180,22 @@ class App {
         this.renderMessage(message);
       }
     } 
-    // var whereParam = {
-    //   roomname: this.currentRoom
-    // };
+  }
 
-    // $.ajax({
-    //   url: this.getURLWithParam({where: whereParam}),
-    //   method: 'GET',
-    //   datatype: 'json',
-    //   success: (data) => {
-    //     for (var message of data.results) {
-    //       this.renderMessage(message);
-    //     }
-    //   },
-    //   complete: () => {
-    //     $('#main .username').on('click', this.handleUsernameClick); 
-    //   }
-    // });
+  handleCreateRoom(event) {
+    event.preventDefault();
+    var roomname = $('#new-roomname').val();
+    this.currentRoom = roomname;
+    this.messagesByRoom[roomname] = [];
+    this.renderRoom(roomname);
+    this.selectCurrentRoom();
+  }
+
+  renderRoom(roomname) {
+    var option = $(`<option value="${_.escape(roomname)}">${_.escape(roomname)}</option>`);
+    $('#roomSelect').append(option);
   }
 }
-
-// class App {
-//   constructor() {
-//     this.server = 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages';
-//     this.currentRoom;
-//     this.messagesByRoom = {};
-//     this.friends = {};
-//     // this.autoRefresh;
-//     // this.autoRefreshInterval = 3000;
-//   }
-
-//   init() {
-//     this.updateRoomList();
-//     // this.startAutoRefresh();
-//     $('#main .username').click(this.handleUsernameClick.bind(this)); 
-//     $('#switch-room').on('click', this.handleSwitchRoom.bind(this));
-//     $('#send').on('submit', this.handleSubmit.bind(this));
-//     $('#new-room').on('submit', this.handleCreateRoom.bind(this));
-//   }
-
-//   send(message) {
-//     $.ajax({
-//       url: this.server,
-//       type: 'POST',
-//       data: message,
-//       success: function(data) {
-        
-//       }
-//     });
-//   }
-
-//   fetch(param) {
-//     $.ajax({
-//       url: this.getURLWithParam(param),
-//       type: 'GET',
-//       datatype: 'json',
-//       success: function(data) {
-//         return data;
-//       }
-//     });
-//   }
-
-//   fetchNewRoomMessages(roomname) {
-//     var whereParam = {
-//       where: {
-//         roomname: roomname
-//       }
-//     };
-//     if (this.messagesByRoom.hasOwnProperty(roomname)) {
-//       var lastUpdateTime = this.messagesByRoom[roomname][0].createdAt;
-//       whereParam['where']['createdAt'] = {
-//         '$gt': {
-//           '__type': 'Date',
-//           'iso': lastUpdateTime
-//         }
-//       };
-//     } else {
-//       this.messagesByRoom[roomname] = [];
-//     }
-//     var newMessages = this.fetch(whereParam).results;
-//     this.messagesByRoom[roomname] = newMessages.concat(this.messagesByRoom[roomname]);
-//   }
-
-//   clearMessages() {
-//     $('#chats').html('');
-//   }
-
-//   renderMessage(message) {
-//     var formattedTimestamp = moment(message.createdAt).format('YYYY-MM-DD, h:mm:ss a');
-//     message = $(
-//       `<div class="message">
-//         <div class="timestamp">Created At: ${formattedTimestamp}</div>
-//         <div class="roomname">Room: ${message.roomname}</div>
-//         <div class="username">User: ${_.escape(message.username)}</div>
-//         <div class="message-text">Message: ${_.escape(message.text)}</div>
-//       </div>`
-//     );
-//     if (this.friends[message.username]) {
-//       message.addClass('friend');
-//     }
-//     $('#chats').append(message);
-//   }
-
-//   renderRoomMessages(roomname) {
-//     var messages = this.messagesByRoom[roomname];
-//     for (var message of messages) {
-//       this.renderMessage(message);
-//     }
-//     // var whereParam = {
-//     //   roomname: this.currentRoom
-//     // };
-
-//     // $.ajax({
-//     //   url: this.getURLWithParam({where: whereParam}),
-//     //   method: 'GET',
-//     //   datatype: 'json',
-//     //   success: (data) => {
-//     //     for (var message of data.results) {
-//     //       this.renderMessage(message);
-//     //     }
-//     //   },
-//     //   complete: () => {
-//     //     $('#main .username').on('click', this.handleUsernameClick); 
-//     //   }
-//     // });
-//   }
-
-//   // startAutoRefresh() {
-//   //   var interval = this.autoRefreshInterval;
-//   //   this.autoRefresh = setInterval(() => {
-//   //     $('#last-updated').text('last updated: ' + new Date());
-//   //     this.clearMessages();
-//   //     this.renderRoomMessages(this.currentRoom);
-//   //   }, interval);
-//   // }
-
-//   renderRoom(roomname) {
-//     var option = $(`<option value="${roomname}">${roomname}</option>`);
-//     $('#roomSelect').append(option);
-//   }
-
-//   updateRoomList() {  
-//     $.ajax({
-//       url: this.getURLWithParam(),
-//       type: 'GET',
-//       datatype: 'json',
-//       success: function(data) {
-//         var renderedRooms = {};
-//         for (var message of data.results) {
-//           var roomname = message.roomname;
-//           if (roomname === undefined || roomname === null) {
-//             continue;
-//           }
-//           if (!renderedRooms[roomname]) {
-//             renderedRooms[roomname] = true;
-//             app.renderRoom(message.roomname);
-//           }
-//         }
-//       }
-//     });
-//   }
-
-//   getURLWithParam(param) {
-//     param = _.extend(defaultParams, param);
-//     var urlEncodedParams = this.encodeParams(param);
-//     return this.server + '?' + urlEncodedParams;
-//   }
-
-//   encodeParams(param) {
-//     var result = [];
-//     for (var k in param) {
-//       if (Array.isArray(param[k])) {
-//         result.push(k + '=' + param[k].join(','));
-//       } else {
-//         result.push(k + '=' + JSON.stringify(param[k]));
-//       }
-//     }
-//     return result.join('&');
-//   }
-
-//   handleCreateRoom(event) {
-//     event.preventDefault();
-//     var roomname = $('#new-roomname').val();
-//     this.renderRoom(roomname);
-//     $(`#roomSelect > option[value='${roomname}']`)[0].selected = true;
-//   }
-
-//   handleSwitchRoom() {
-//     var roomname = $('#roomSelect > option:selected').val();
-//     this.currentRoom = roomname;
-//     this.fetchNewRoomMessages(roomname);
-//     this.clearMessages();
-//     this.renderRoomMessages(roomname);
-//   }
-
-//   handleUsernameClick(event) {
-//     var username = event.target.innerHTML;
-//     app.friends[username] = !app.friends[username];
-//   }
-
-//   handleSubmit(event) {
-//     event.preventDefault();
-//     var text = $('#message').val();
-//     var message = {
-//       username: getUsername(window.location.search),
-//       text: text,
-//       roomname: this.currentRoom
-//     };
-//     this.send(message);
-//   }
-// } 
 
 var app;
 
